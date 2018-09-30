@@ -3,27 +3,52 @@ from collections import deque
 import random
 import pygame
 from pygame.locals import *
+import os.path
+
+main_dir = os.path.split(os.path.abspath(__file__))[0]
+
+def load_image(file):
+    "loads an image, prepares it for play"
+    file = os.path.join(main_dir, 'data', file)
+    try:
+        surface = pygame.image.load(file)
+    except pygame.error:
+        raise SystemExit('Could not load image "%s" %s'%(file, pygame.get_error()))
+    return surface.convert()
+
+def load_images(*files):
+    imgs = []
+    for file in files:
+        imgs.append(load_image(file))
+    return imgs
+
 
 class memoryGame:
     reveal_MAX = 2
     selectedCard = []
+    all = []
     unMatched = []
     matched = []
-
+    cardCount = 0
 
     def __init__(self, givenDeck, matchingRule):
         self.deck = givenDeck
         self.deck.shuffle()
         for x in range(self.deck.cardCount()):
-            self.unMatched.append(self.deck.deal())
+            self.cardCount = self.cardCount + 1
+
+            self.all.append(self.deck.deal())
+            self.unMatched = self.all[:]
         self.rule = matchingRule
 
     def isWin(self):
         return len(self.unMatched) == 0
 
     def select(self,card):
-        if card in self.unMatched:
+        if card in self.unMatched and card not in self.selectedCard:
+
           self.selectedCard.append(card)
+
         #Check if the two selected card is matching once we have two cards selected
           if len(self.selectedCard) == 2:
             #If matched, remove the selected card from unmached and added to matched
@@ -36,6 +61,14 @@ class memoryGame:
                 self.matched.append(self.selectedCard[1])
             #no matter mateched or not, we are done with the current selected cards
             del self.selectedCard[:]
+
+    def getSize(self):
+        return self.cardCount
+
+    #Return all contained cards in a list
+    #def staringDeck(self):
+    #    return self.all[:]
+
 
 
 class matchingRule:
@@ -122,7 +155,7 @@ class pokerCard:
     # Expect input such as "S13", "D2"
     def __init__(self, value):
         self.suit = value[0]
-        self.value = int(value[1:])
+        self.value = value[1:]
 
     def getSuit(self):
         return self.suit
@@ -136,28 +169,97 @@ class pokerCard:
 def main(winstyle = 0):
     pygame.init()
     clock = pygame.time.Clock()
-    flip = True
 
-    winstyle = 0
-    screen = pygame.display.set_mode((500,500))
+
+    Deck = pokerDeck()
+    rule = easyPokerRule()
+    game = memoryGame(Deck, rule)
+    #Set to full screen
+    screen = pygame.display.set_mode((0,0))
+
+    #Divide the screen into n parts where n is the size of deck, 4 rows
+    #Assuming the deck size is divisable by 4
+    cardNum = game.getSize()
+    rowNum = 4
+    colNum = cardNum/rowNum
+    if cardNum%rowNum != 0:
+        colNum += 1
+
+    height = pygame.display.Info().current_h
+    width = pygame.display.Info().current_w
+    print (height, width)
+    X_dif = width/colNum
+    Y_dif = height/rowNum
+
+    print (X_dif, Y_dif)
+
     crashed = False
 
-    color1 = (0,0,0)
-    color2 = (222,222,222)
-    color = True
+    imageList = []
+    #Create an array of images that the index is corresponding to the index of cards
+    for card in game.all:
+        suit = card.getSuit()
+        value = card.getValue()
+        if value == "1":
+            value = "A"
+        elif value == "11":
+            value = "J"
+        elif value == "12":
+            value = "Q"
+        elif value == "13":
+            value = "K"
 
-    #Divide the screen into 
+        cardImgName = value + suit + ".png"
+
+        cardImg = load_image(cardImgName)
+        cardImg = pygame.transform.scale(cardImg, (X_dif, Y_dif))
+        imageList.append(cardImg)
+
+
+
+    # cardImg = load_image("2C.jpg")
+    # cardImg = pygame.transform.scale(cardImg, (X_dif, Y_dif))
+    # backImg = load_image("blue_back.jpg")
+    # backImg = pygame.transform.scale(backImg, (X_dif, Y_dif))
+
+
     while not crashed:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 crashed = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if color:
-                    screen.fill(color1)
-                else:
-                    screen.fill(color2)
-                color = not color#print(pygame.mouse.get_pos())
-                print color
+                coord = pygame.mouse.get_pos()
+                col = coord[0]/X_dif
+                row = coord[1]/Y_dif
+                print(coord)
+                print(col, row)
+                index = col + row * colNum
+
+                game.select(game.all[index])
+                # if color:
+                #     screen.blit(backImg, (2* X_dif, 0))
+                # else:
+                #     screen.blit(cardImg, (2* X_dif, 0))
+                # color = not color#print(pygame.mouse.get_pos())
+                # print color
+
+            for unMatchedCard in game.unMatched:
+                index = game.all.index(unMatchedCard)
+                colCoord = index%13 * X_dif
+                rowCoord = index/13 * Y_dif
+                screen.blit(imageList[index], (colCoord, rowCoord))
+                #print (index, colCoord, rowCoord)
+
+            for matchedCard in game.matched:
+                index = game.all.index(matchedCard)
+                colCoord = index%13 * X_dif
+                rowCoord = index/13 * Y_dif
+                screen.blit(imageList[index], (colCoord, rowCoord))
+            for selectedCard in game.selectedCard:
+                index = game.all.index(selectedCard)
+                colCoord = index%13 * X_dif
+                rowCoord = index/13 * Y_dif
+                screen.blit(imageList[index], (colCoord, rowCoord))
         pygame.display.update()
         clock.tick(40)
 # Deckk = pokerDeck()
