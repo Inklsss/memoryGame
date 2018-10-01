@@ -1,0 +1,34 @@
+What is this game:
+This is a game of memory build up by a deck of 52 poker card. For any pairs of card with matching
+value will count as a match. Each time a click on a unmatched/unselected card will reveal its'
+value. If two cards are selected and they are matched, the card will be kept reveal. Else the
+two cards will keep displaying until a click on the third unmatched/unselected card. You win the
+game by revealing all cards. Then you will be congratulated by "Congratulation!"(Duh what Else
+could happen?) and the game will quit in 5 second after. You can also quit the game before you
+are complete and receive A SHAME! Well and the game will also quit after 5 seconds.
+
+Does it work?
+It works on my computer. Hopefully it will run elsewhere too.
+
+How to run?
+Unzip it and cmd python Memory.py
+
+Design Choices:
+To be honest, my code is not implement in the best way. I did take in the consideration that
+a different deck or different matching rule(does same value different color counts?) can be
+applied to the game, so I have a abc class for both deck and rule which provides a guideline
+for further changes. Rules should be rather easy to switch, but a different deck requires changes
+to the linked images and the process of filling the game's table too.
+If given more time, I will try to make an abc for card too so the iteration on cards can go
+more smoothly. The game itself also lack a mechanic to check if the input deck is able to be
+solved under the given rule, so it might be troublesome for others to change deck unaware of this
+fact. Information hiding can be enforced a lot better by a better use of abc.
+The connection between the display and the game can also be imporved. Different files
+containing different classes is also welcomed.
+
+Choice of tooling
+I used python and pygame for the majority of my code. I choice python is mostly due to it's
+simplicity. This problem is rather light weight in terms of computing cost and run time is not
+desperately needed. Python also has a variety of library to chose from which shrink the development
+time. I choice to use pygame is for the same reason, and there is a lot of examples
+to reference to on the internet.
