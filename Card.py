@@ -24,12 +24,12 @@ def load_images(*files):
 
 
 class memoryGame:
-    reveal_MAX = 2
     selectedCard = []
     all = []
     unMatched = []
     matched = []
     cardCount = 0
+
 
     def __init__(self, givenDeck, matchingRule):
         self.deck = givenDeck
@@ -45,22 +45,29 @@ class memoryGame:
         return len(self.unMatched) == 0
 
     def select(self,card):
+
         if card in self.unMatched and card not in self.selectedCard:
 
-          self.selectedCard.append(card)
+            self.selectedCard.append(card)
 
         #Check if the two selected card is matching once we have two cards selected
-          if len(self.selectedCard) == 2:
+            if len(self.selectedCard) == 2:
             #If matched, remove the selected card from unmached and added to matched
-            isMatch = self.rule.isMatching(self.selectedCard[0], self.selectedCard[1])
-            print(isMatch)
-            if isMatch:
-                self.unMatched.remove(self.selectedCard[0])
-                self.unMatched.remove(self.selectedCard[1])
-                self.matched.append(self.selectedCard[0])
-                self.matched.append(self.selectedCard[1])
+                isMatch = self.rule.isMatching(self.selectedCard[0], self.selectedCard[1])
+                print(isMatch)
+                if isMatch:
+                    self.unMatched.remove(self.selectedCard[0])
+                    self.unMatched.remove(self.selectedCard[1])
+                    self.matched.append(self.selectedCard[0])
+                    self.matched.append(self.selectedCard[1])
+                    del self.selectedCard[:]
+
+            elif len(self.selectedCard) == 3:
+
+
             #no matter mateched or not, we are done with the current selected cards
-            del self.selectedCard[:]
+                del self.selectedCard[0:2]
+
 
     def getSize(self):
         return self.cardCount
@@ -170,20 +177,32 @@ def main(winstyle = 0):
     pygame.init()
     clock = pygame.time.Clock()
 
-
+    #initialize the game
     Deck = pokerDeck()
     rule = easyPokerRule()
     game = memoryGame(Deck, rule)
     #Set to full screen
-    screen = pygame.display.set_mode((0,0))
+
+    #set up window
+    screenHeight = 1000
+    screenWidth = 1720
+    screen = pygame.display.set_mode((screenWidth, screenHeight))
+
+    #decorate the game window
+    icon = load_image('back_cards-07.png')
+    icon = pygame.transform.scale(icon, (32,32))
+    pygame.display.set_icon(icon)
+    pygame.display.set_caption('Poker Memory')
+
 
     #Divide the screen into n parts where n is the size of deck, 4 rows
     #Assuming the deck size is divisable by 4
     cardNum = game.getSize()
     rowNum = 4
     colNum = cardNum/rowNum
+    #If the card is not divisable by 4, add another row
     if cardNum%rowNum != 0:
-        colNum += 1
+        rowNum += 1
 
     height = pygame.display.Info().current_h
     width = pygame.display.Info().current_w
@@ -219,11 +238,15 @@ def main(winstyle = 0):
 
     # cardImg = load_image("2C.jpg")
     # cardImg = pygame.transform.scale(cardImg, (X_dif, Y_dif))
-    # backImg = load_image("blue_back.jpg")
-    # backImg = pygame.transform.scale(backImg, (X_dif, Y_dif))
+    backImg = load_image("blue_back.png")
+    backImg = pygame.transform.scale(backImg, (X_dif, Y_dif))
 
+    font = pygame.font.SysFont("comicsansms", 72)
 
-    while not crashed:
+    winText = font.render("Congraduation! ", True, (0, 128, 0))
+    loseText = font.render("A shame!", True, (0, 128, 0))
+
+    while not crashed and not game.isWin():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 crashed = True
@@ -236,6 +259,7 @@ def main(winstyle = 0):
                 index = col + row * colNum
 
                 game.select(game.all[index])
+
                 # if color:
                 #     screen.blit(backImg, (2* X_dif, 0))
                 # else:
@@ -247,8 +271,12 @@ def main(winstyle = 0):
                 index = game.all.index(unMatchedCard)
                 colCoord = index%13 * X_dif
                 rowCoord = index/13 * Y_dif
-                screen.blit(imageList[index], (colCoord, rowCoord))
+
+
+                screen.blit(backImg, (colCoord, rowCoord))
                 #print (index, colCoord, rowCoord)
+
+
 
             for matchedCard in game.matched:
                 index = game.all.index(matchedCard)
@@ -260,8 +288,20 @@ def main(winstyle = 0):
                 colCoord = index%13 * X_dif
                 rowCoord = index/13 * Y_dif
                 screen.blit(imageList[index], (colCoord, rowCoord))
+
+
         pygame.display.update()
         clock.tick(40)
+
+    if game.isWin():
+        screen.blit(winText,
+        (320 - text.get_width() // 2, 240 - text.get_height() // 2))
+    else:
+        screen.blit(loseText,
+        (320 - text.get_width() // 2, 240 - text.get_height() // 2))
+    pygame.display.update()
+    pygame.time.delay(5000)
+    pygame.quit()
 # Deckk = pokerDeck()
 # rule1 = easyPokerRule()
 #
