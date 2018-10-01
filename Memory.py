@@ -1,3 +1,8 @@
+#Memory game. Using pygame to render a game of memory with a set of poker cards
+#Author: Anthony Yang Xu
+#Last Update: Sept 30, 2018
+
+
 from abc import ABCMeta, abstractmethod
 from collections import deque
 import random
@@ -5,6 +10,7 @@ import pygame
 from pygame.locals import *
 import os.path
 
+#Find path for images
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 
 def load_image(file):
@@ -42,10 +48,16 @@ class memoryGame:
         self.rule = matchingRule
 
     def isWin(self):
+        #if not more cards are unmatched, the game is solved
         return len(self.unMatched) == 0
 
+    #select a given unmatched card. If two cards are selected and they are matching,
+    #move them to matched list. If two cards are selected and they are not matching,
+    #keep display them until the third card is selected. Then remove the first two
+    #cards
     def select(self,card):
 
+        #if the card is unmatched and it is not yet been selected
         if card in self.unMatched and card not in self.selectedCard:
 
             self.selectedCard.append(card)
@@ -54,8 +66,8 @@ class memoryGame:
             if len(self.selectedCard) == 2:
             #If matched, remove the selected card from unmached and added to matched
                 isMatch = self.rule.isMatching(self.selectedCard[0], self.selectedCard[1])
-                print(isMatch)
                 if isMatch:
+                    #remove matched pair from unmatched and move to matched
                     self.unMatched.remove(self.selectedCard[0])
                     self.unMatched.remove(self.selectedCard[1])
                     self.matched.append(self.selectedCard[0])
@@ -63,10 +75,11 @@ class memoryGame:
                     del self.selectedCard[:]
 
             elif len(self.selectedCard) == 3:
-
-
-            #no matter mateched or not, we are done with the current selected cards
+                #Remove the previous two cards.
                 del self.selectedCard[0:2]
+
+
+
 
 
     def getSize(self):
@@ -77,7 +90,7 @@ class memoryGame:
     #    return self.all[:]
 
 
-
+#The rule for what count as a match.
 class matchingRule:
     __metaclass__ = ABCMeta
     @abstractmethod
@@ -152,7 +165,7 @@ class pokerDeck(Deck):
     def cardCount(self):
         return len(self.cardHolder)
 
-    def printDeck(self):
+    def toString(self):
         for card in self.cardHolder:
             print card.printAll()
 
@@ -170,7 +183,7 @@ class pokerCard:
     def getValue(self):
         return self.value
 
-    def printAll(self):
+    def toString(self):
         return self.suit + str(self.value)
 
 def main(winstyle = 0):
@@ -206,16 +219,17 @@ def main(winstyle = 0):
 
     height = pygame.display.Info().current_h
     width = pygame.display.Info().current_w
-    print (height, width)
+
     X_dif = width/colNum
     Y_dif = height/rowNum
 
-    print (X_dif, Y_dif)
+
 
     crashed = False
 
     imageList = []
     #Create an array of images that the index is corresponding to the index of cards
+    #in game
     for card in game.all:
         suit = card.getSuit()
         value = card.getValue()
@@ -234,10 +248,7 @@ def main(winstyle = 0):
         cardImg = pygame.transform.scale(cardImg, (X_dif, Y_dif))
         imageList.append(cardImg)
 
-
-
-    # cardImg = load_image("2C.jpg")
-    # cardImg = pygame.transform.scale(cardImg, (X_dif, Y_dif))
+    #Load card back image
     backImg = load_image("blue_back.png")
     backImg = pygame.transform.scale(backImg, (X_dif, Y_dif))
 
@@ -251,22 +262,18 @@ def main(winstyle = 0):
             if event.type == pygame.QUIT:
                 crashed = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                #find out the corresponding grid to get correct card
                 coord = pygame.mouse.get_pos()
                 col = coord[0]/X_dif
                 row = coord[1]/Y_dif
-                print(coord)
-                print(col, row)
+
                 index = col + row * colNum
 
+                #not the best implementation
                 game.select(game.all[index])
 
-                # if color:
-                #     screen.blit(backImg, (2* X_dif, 0))
-                # else:
-                #     screen.blit(cardImg, (2* X_dif, 0))
-                # color = not color#print(pygame.mouse.get_pos())
-                # print color
 
+            #use the index to find out the correct render position
             for unMatchedCard in game.unMatched:
                 index = game.all.index(unMatchedCard)
                 colCoord = index%13 * X_dif
@@ -274,7 +281,7 @@ def main(winstyle = 0):
 
 
                 screen.blit(backImg, (colCoord, rowCoord))
-                #print (index, colCoord, rowCoord)
+
 
 
 
@@ -297,39 +304,13 @@ def main(winstyle = 0):
     if game.isWin():
         screen.blit(winText,
         (100, 300))
-#        (320 - winText.get_width() // 2, 240 - winText.get_height() // 2))
+
     else:
         screen.blit(loseText,
         (100, 300))
     pygame.display.update()
     pygame.time.delay(5000)
     pygame.quit()
-# Deckk = pokerDeck()
-# rule1 = easyPokerRule()
-#
-# game = memoryGame(Deckk, rule1)
-#
-# while not game.isWin():
-#     print("This is unMatched:\n")
-#     for x in game.unMatched:
-#         print(x.printAll())
-#     print("This is matched:\n")
-#     for y in game.matched:
-#         print(y.printAll())
-#
-#     print("This is selected:\n")
-#     for z in game.selectedCard:
-#         print(z.printAll())
-#     print("Enter index: ")
-#     index = input()
-#     #print(type(game.unMatched[0]))
-#     game.select(game.unMatched[int(index)])
 
-
-
-#print("\n")
-#print(Deckk.cardCount())
-#Deckk.shuffle()
-#print(Deckk.printDeck())
 
 if __name__ == '__main__': main()
