@@ -243,8 +243,8 @@ def main(winstyle = 0):
 
     font = pygame.font.SysFont("comicsansms", 72)
 
-    winText = font.render("Congraduation! ", True, (0, 128, 0))
-    loseText = font.render("A shame!", True, (0, 128, 0))
+    winText = font.render("Congraduation! ", True, (128, 0, 0))
+    loseText = font.render("A shame! Maybe next time?", True, (128, 0, 0))
 
     while not crashed and not game.isWin():
         for event in pygame.event.get():
@@ -293,12 +293,14 @@ def main(winstyle = 0):
         pygame.display.update()
         clock.tick(40)
 
+    #Display win/lose text. Quit after 5 second
     if game.isWin():
         screen.blit(winText,
-        (320 - text.get_width() // 2, 240 - text.get_height() // 2))
+        (100, 300))
+#        (320 - winText.get_width() // 2, 240 - winText.get_height() // 2))
     else:
         screen.blit(loseText,
-        (320 - text.get_width() // 2, 240 - text.get_height() // 2))
+        (100, 300))
     pygame.display.update()
     pygame.time.delay(5000)
     pygame.quit()
